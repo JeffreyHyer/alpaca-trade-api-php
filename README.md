@@ -107,84 +107,84 @@ stdClass Object
 
 ### Account
 
-[:ledger: Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/account/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/account/)
 
-`getAccount()`
+#### `getAccount()`
 
 Returns the account associated with the API key.
 
 
 ### Orders
 
-[:ledger: Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/orders/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/orders/)
 
-`getOrders($status = null, $limit = null, $after = null, $until = null, $direction = null)`
+#### `getOrders($status = null, $limit = null, $after = null, $until = null, $direction = null)`
 
 Retrieves a list of orders for the account, filtered by the supplied query parameters.
 
-`createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null)`
+#### `createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null)`
 
 Places a new order for the given account. An order request may be rejected if the account is not authorized for trading, or if the tradable balance is insufficient to fill the order.
 
-`getOrder($order_id)`
+#### `getOrder($order_id)`
 
 Retrieves a single order for the given `$order_id`.
 
-`getOrderByClientId($client_order_id)`
+#### `getOrderByClientId($client_order_id)`
 
 Retrieves a single order for the given `$client_order_id`.
 
-`cancelOrder($order_id)`
+#### `cancelOrder($order_id)`
 
 Attempts to cancel an open order. If the order is no longer cancelable (example: `status=order_filled`), the server will respond with status 422, and reject the request.
 
 
 ### Positions
 
-[:ledger: Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/positions/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/positions/)
 
-`getPositions()`
+#### `getPositions()`
 
 Retrieves a list of the account's open positions.
 
-`getPosition($symbol)`
+#### `getPosition($symbol)`
 
 Retrieves the account's open position for the given `$symbol`.
 
 
 ### Assets
 
-[:ledger: Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/assets/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/assets/)
 
-`getAssets($status = null, $asset_class = null)`
+#### `getAssets($status = null, $asset_class = null)`
 
 Get a list of assets
 
-`getAsset($symbol)`
+#### `getAsset($symbol)`
 
 Get an asset for the given `symbol`.
 
 
 ### Calendar
 
-[:ledger: Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/calendar/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/calendar/)
 
-`getCalendar($start = null, $end = null)`
+#### `getCalendar($start = null, $end = null)`
 
 Returns the market calendar.
 
 
 ### Clock
 
-[:ledger: Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/clock/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/clock/)
 
-`getClock()`
+#### `getClock()`
 
 Returns the market clock.
 
 
 ### Market Data
 
-`getBars($timeframe, $symbols, $limit = null, $start = null, $end = null, $after = null, $until = null)`
+#### `getBars($timeframe, $symbols, $limit = null, $start = null, $end = null, $after = null, $until = null)`
 
 Retrieves a list of bars for each requested symbol. It is guaranteed all bars are in ascending order by time. Currently, no “incomplete” bars are returned. For example, a 1 minute bar for 09:30 will not be returned until 09:31.
