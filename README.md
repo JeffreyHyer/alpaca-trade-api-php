@@ -1,6 +1,6 @@
 # Alpaca PHP SDK
 
-This repository contains a PHP SDK for use with the [Alpaca](https://alpaca.markets/) API.
+This repository contains a PHP SDK for use with the [Alpaca](https://alpaca.markets?ref_by=858915e73e) API.
 
 **DISCLAIMER:** This is **NOT** an official SDK, it is not affiliated with nor endorsed by Alpaca in any way.
 
