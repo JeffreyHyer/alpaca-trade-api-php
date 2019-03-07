@@ -12,7 +12,7 @@ class Alpaca
      *
      * @var \GuzzleHttp\Client
      */
-    public $client;
+    private $client;
 
     /**
      * Key ID
@@ -98,7 +98,7 @@ class Alpaca
      *
      * @return string               [description]
      */
-    protected function _buildUrl($path = "", $queryStrings = [], $domain = null, $version = "v1")
+    private function _buildUrl($path = "", $queryStrings = [], $domain = null, $version = "v1")
     {
         $queryString = "";
 
@@ -137,7 +137,7 @@ class Alpaca
      *
      * @return Response
      */
-    protected function _request($path, $queryString = [], $type = "GET", $body = null, $domain = null)
+    private function _request($path, $queryString = [], $type = "GET", $body = null, $domain = null)
     {
         try {
             $request = [

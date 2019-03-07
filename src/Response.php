@@ -19,11 +19,6 @@ class Response {
         $this->response = $this->_parseResponse($response);
     }
 
-    public function hasErrors()
-    {
-        return !empty($this->errors);
-    }
-
     public function getCode()
     {
         return $this->code;
