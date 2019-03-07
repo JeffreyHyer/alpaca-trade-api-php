@@ -3,6 +3,7 @@
 namespace Alpaca;
 
 use GuzzleHttp\Client;
+use Carbon\Carbon;
 
 class Alpaca
 {
@@ -97,7 +98,7 @@ class Alpaca
      *
      * @return string               [description]
      */
-    protected function _buildUrl($path = "", $queryStrings = [], $version = "v1")
+    protected function _buildUrl($path = "", $queryStrings = [], $domain = null, $version = "v1")
     {
         $queryString = "";
 
@@ -113,10 +114,12 @@ class Alpaca
             $queryString = "?" . substr($queryString, 1);
         }
 
-        if ($this->paper === true) {
-            $domain = "https://paper-api.alpaca.markets";
-        } else {
-            $domain = "https://api.alpaca.markets";
+        if (is_null($domain)) {
+            if ($this->paper === true) {
+                $domain = "https://paper-api.alpaca.markets";
+            } else {
+                $domain = "https://api.alpaca.markets";
+            }
         }
 
         $path = trim($path, "/");
@@ -134,7 +137,7 @@ class Alpaca
      *
      * @return Response
      */
-    protected function _request($path, $queryString = [], $type = "GET", $body = null)
+    protected function _request($path, $queryString = [], $type = "GET", $body = null, $domain = null)
     {
         try {
             $request = [
@@ -152,7 +155,7 @@ class Alpaca
                 $request['body'] = $body;
             }
 
-            $response = $this->client->request($type, $this->_buildUrl($path, $queryString), $request);
+            $response = $this->client->request($type, $this->_buildUrl($path, $queryString, $domain), $request);
 
             return new Response($response);
         } catch (\GuzzleHttp\Exception\TransferException $e) {
@@ -362,6 +365,91 @@ class Alpaca
     public function getAsset($symbol)
     {
         return $this->_request("assets/{$symbol}");
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @link https://docs.alpaca.markets/api-documentation/web-api/calendar/#get-the-calendar
+     *
+     * @param string $start
+     * @param string $end
+     *
+     * @return Response
+     */
+    public function getCalendar($start = null, $end = null)
+    {
+        $qs = [];
+
+        if (!is_null($start)) {
+            $qs['start'] = (new Carbon($start))->format('Y-m-d');
+        }
+
+        if (!is_null($end)) {
+            $qs['end'] = (new Carbon($end))->format('Y-m-d');
+        }
+
+        return $this->_request("calendar", $qs);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @link https://docs.alpaca.markets/api-documentation/web-api/clock/#get-the-clock
+     *
+     * @return void
+     */
+    public function getClock()
+    {
+        return $this->_request("clock");
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @link https://docs.alpaca.markets/api-documentation/web-api/market-data/bars/#get-a-list-of-bars
+     *
+     * @param string        $timeframe  One of: 'minute', '1Min', '5Min', '15Min', 'day', '1D'.
+     * @param string|array  $symbols    One or more (max 200) symbol names.
+     * @param int           $limit      The maximum number of bars to be returned for each symbol. Max = 1000. Default = 100.
+     * @param string        $start      Filter bars equal to or after this time. Cannot be used with 'after'.
+     * @param string        $end        Filter bars equal to or before this time. Cannot be used with 'until'.
+     * @param string        $after      Filter bars after this time. Cannot be used with 'start'.
+     * @param string        $until      Filter bars before this time. Cannot be used with 'end'.
+     *
+     * @return Response
+     */
+    public function getBars($timeframe, $symbols, $limit = null, $start = null, $end = null, $after = null, $until = null)
+    {
+        $qs = [];
+
+        if (is_array($symbols)) {
+            $qs['symbols'] = implode(",", $symbols);
+        } else {
+            $qs['symbols'] = $symbols;
+        }
+
+        if (!is_null($limit)) {
+            $qs['limit'] = $limit;
+        }
+
+        if (!is_null($start)) {
+            $qs['start'] = $start;
+        }
+
+        if (!is_null($end)) {
+            $qs['end'] = $end;
+        }
+
+        if (!is_null($after)) {
+            $qs['after'] = $after;
+        }
+
+        if (!is_null($until)) {
+            $qs['until'] = $until;
+        }
+
+        return $this->_request("bars/{$timeframe}", $qs, "GET", null, "https://data.alpaca.markets");
     }
 
     /**

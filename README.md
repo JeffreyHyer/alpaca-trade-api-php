@@ -27,9 +27,10 @@ require './vendor/autoload.php';
 
 use Alpaca\Alpaca;
 
-$alpaca = new Alpaca();
+$alpaca = new Alpaca("--KEY--", "--SECRET--");
 
 $positions = $alpaca->getPositions();
+```
 
 ## API
 
