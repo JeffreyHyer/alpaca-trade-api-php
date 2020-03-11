@@ -2,8 +2,8 @@
 
 namespace Alpaca;
 
-use GuzzleHttp\Client;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
 
 class Alpaca
 {
@@ -42,7 +42,7 @@ class Alpaca
      * @param string $domain    The company name/subdomain in BambooHR
      * @param string $token     The API Token to use when sending requests
      * @param array  $options   An array of options ['base_uri', 'version'] to override the defaults
-     * 
+     *
      * @return void
      */
     public function __construct($key = "", $secret = "", $paper = true)
@@ -98,7 +98,7 @@ class Alpaca
      *
      * @return string               [description]
      */
-    private function _buildUrl($path = "", $queryStrings = [], $domain = null, $version = "v1")
+    private function _buildUrl($path = "", $queryStrings = [], $domain = null, $version = "v2")
     {
         $queryString = "";
 
@@ -134,6 +134,7 @@ class Alpaca
      * @param array $queryString
      * @param string $type
      * @param mixed $body
+     * @param string $domain
      *
      * @return Response
      */
@@ -146,12 +147,12 @@ class Alpaca
                     'Accept' => 'application/json',
                     'APCA-API-KEY-ID' => "{$this->key}",
                     'APCA-API-SECRET-KEY' => "{$this->secret}",
-                ]
+                ],
             ];
 
             if (is_array($body)) {
                 $request['body'] = json_encode($body);
-            } else if (!empty($body)) {
+            } elseif (!empty($body)) {
                 $request['body'] = $body;
             }
 
@@ -183,16 +184,17 @@ class Alpaca
      * Undocumented function
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#get-a-list-of-orders
-     * 
+     *
      * @param string $status 'open', 'closed', 'all'
      * @param int $limit Max 500, default 50
      * @param string $after
      * @param string $until
      * @param string $direction 'asc', 'desc'
+     * @param boolean $nested
      *
      * @return Response
      */
-    public function getOrders($status = null, $limit = null, $after = null, $until = null, $direction = null)
+    public function getOrders($status = null, $limit = null, $after = null, $until = null, $direction = null, $nested = null)
     {
         $qs = [];
 
@@ -216,12 +218,16 @@ class Alpaca
             $qs['direction'] = $direction;
         }
 
+        if (!is_null($nested)) {
+            $qs['nested'] = $nested;
+        }
+
         return $this->_request("orders", $qs);
     }
 
     /**
      * Undocumented function
-     * 
+     *
      * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#get-an-order
      *
      * @param string $order_id
@@ -236,7 +242,7 @@ class Alpaca
     /**
      * Undocumented function
      *
-     * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#get-an-order-by-client-order-id
+     * @link https://docs.alpaca.markets/api-documentation/api-v2/orders/#get-an-order-by-client-order-id
      *
      * @param string $client_order_id
      *
@@ -245,6 +251,42 @@ class Alpaca
     public function getOrderByClientId($client_order_id)
     {
         return $this->_request("orders:by_client_order_id", ['client_order_id' => $client_order_id]);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @link https://docs.alpaca.markets/api-documentation/api-v2/orders/#replace-an-order
+     *
+     * @param string $order_id
+     * @param int $qty
+     * @param string $time_in_force
+     * @param double $limit_price
+     * @param double $stop_price
+     * @param string $client_order_id
+     *
+     * @return Response
+     */
+    public function replaceOrder($order_id, $qty, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null)
+    {
+        $body = [
+            'qty' => $qty,
+            'time_in_force' => $time_in_force,
+        ];
+
+        if (!is_null($limit_price)) {
+            $body['limit_price'] = $limit_price;
+        }
+
+        if (!is_null($stop_price)) {
+            $body['stop_price'] = $stop_price;
+        }
+
+        if (!is_null($client_order_id)) {
+            $body['client_order_id'] = $client_order_id;
+        }
+
+        return $this->_request("orders/{$order_id}", [], "PATCH", $body);
     }
 
     /**
@@ -262,6 +304,18 @@ class Alpaca
     }
 
     /**
+     * Cancel all orders
+     * 
+     * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#cancel-all-orders
+     * 
+     * @return Response
+     */
+    public function cancelAllOrders()
+    {
+        return $this->_request("orders", [], "DELETE");
+    }
+
+    /**
      * Create a new order
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#request-a-new-order
@@ -270,21 +324,22 @@ class Alpaca
      * @param int $qty
      * @param string $side 'buy' or 'sell'
      * @param string $type 'market', 'limit', 'stop', 'stop_limit'
-     * @param string $time_in_force 'day', 'gtc', 'opg'
+     * @param string $time_in_force 'day', 'gtc', 'opg', 'cls', 'ioc', 'fok'
      * @param double $limit_price Required if type is 'limit' or 'stop_limit'
      * @param double $stop_price Required if type is 'stop' or 'stop_limit'
      * @param string $client_order_id Max 48 chars
+     * @param boolean $extended_hours default: false
      *
      * @return Response
      */
-    public function createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null)
+    public function createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null, $extended_hours = null)
     {
         $body = [
-            'symbol'        => $symbol,
-            'qty'           => $qty,
-            'side'          => $side,
-            'type'          => $type,
-            'time_in_force' => $time_in_force
+            'symbol' => $symbol,
+            'qty' => $qty,
+            'side' => $side,
+            'type' => $type,
+            'time_in_force' => $time_in_force,
         ];
 
         if (!is_null($limit_price)) {
@@ -297,6 +352,10 @@ class Alpaca
 
         if (!is_null($client_order_id)) {
             $body['client_order_id'] = $client_order_id;
+        }
+
+        if (!is_null($extended_hours)) {
+            $body['extended_hours'] = $extended_hours;
         }
 
         return $this->_request("orders", [], "POST", $body);
@@ -327,9 +386,35 @@ class Alpaca
     {
         return $this->_request("positions/{$symbol}");
     }
+    
+    /**
+     * Close all positions
+     * 
+     * @link https://docs.alpaca.markets/api-documentation/api-v2/positions/#close-all-positions
+     *
+     * @return Response
+     */
+    public function closeAllPositions()
+    {
+        return $this->_request("positions", [], "DELETE");
+    }
 
     /**
-     * Undocumented function
+     * Close a position
+     * 
+     * @link https://docs.alpaca.markets/api-documentation/api-v2/positions/#close-a-position
+     *
+     * @param  string $symbol
+     *
+     * @return Response
+     */
+    public function closePosition($symbol)
+    {
+        return $this->_request("positions/{$symbol}", [], "DELETE");
+    }
+
+    /**
+     * Get assets
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/assets/#get-assets
      *
@@ -352,6 +437,20 @@ class Alpaca
 
         return $this->_request("assets", $qs);
     }
+    
+    /**
+     * Get an asset by ID
+     *
+     * @link https://docs.alpaca.markets/api-documentation/api-v2/assets/#get-assets/:id
+     *
+     * @param  string $id
+     *
+     * @return Response
+     */
+    public function getAssetById($id)
+    {
+        return $this->_request("assets/{$id}");
+    }
 
     /**
      * Undocumented function
@@ -365,6 +464,168 @@ class Alpaca
     public function getAsset($symbol)
     {
         return $this->_request("assets/{$symbol}");
+    }
+    
+    /**
+     * Get a list of watchlists
+     * 
+     * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#get-a-list-of-watchlists
+     *
+     * @return Response
+     */
+    public function getWatchlists()
+    {
+        return $this->_request("watchlists");
+    }
+    
+    /**
+     * Create a new watchlist with an initial set of assets
+     *
+     * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#create-a-watchlist
+     *
+     * @param  string $name
+     * @param  string[] $symbols
+     *
+     * @return Response
+     */
+    public function createWatchlist($name, $symbols = [])
+    {
+        $body = [
+            "name" => $name,
+            "symbols" => $symbols,
+        ];
+
+        return $this->_request("watchlists", [], "POST", $body);
+    }
+    
+    /**
+     * Get a watchlist
+     * 
+     * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#get-a-watchlist
+     *
+     * @param  string $id
+     *
+     * @return Response
+     */
+    public function getWatchlist($id)
+    {
+        return $this->_request("watchlists/{$id}");
+    }
+
+    /**
+     * Get a watchlist by name
+     * 
+     * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#endpoints-for-watchlist-name
+     *
+     * @param  string $name
+     *
+     * @return Response
+     */
+    public function getWatchlistByName($name)
+    {
+        $qs = [
+            'name' => $name
+        ];
+
+        return $this->_request("watchlists:by_name", $qs);
+    }
+    
+    /**
+     * Update a watchlist by replacing it's contents/symbols.
+     *
+     * @param  string $id
+     * @param  string $name
+     * @param  string[] $symbols
+     *
+     * @return Response
+     */
+    public function updateWatchlist($id, $name, $symbols = [])
+    {
+        $body = [
+            "name" => $name,
+            "symbols" => $symbols,
+        ];
+
+        $this->_request("watchlists/{$id}", [], "PUT", $body);
+    }
+    
+    /**
+     * Update a watchlist by name.
+     *
+     * @param  string $name
+     * @param  string[] $symbols
+     *
+     * @return Response
+     */
+    public function updateWatchlistByName($name, $symbols = [])
+    {
+        $qs = [
+            "name" => $name
+        ];
+
+        $body = [
+            "name" => $name,
+            "symbols" => $symbols,
+        ];
+
+        return $this->_request("watchlists:by_name", $qs, "PUT", $body);
+    }
+    
+    /**
+     * Add an asset to a watchlist
+     *
+     * @param  string $id
+     * @param  string $symbol
+     *
+     * @return Response
+     */
+    public function addAssetToWatchlist($id, $symbol)
+    {
+        $body = ["symbol" => $symbol];
+
+        return $this->_request("watchlists/{$id}", [], "POST", $body);
+    }
+    
+    /**
+     * Add an asset to a watchlist by name.
+     *
+     * @param  string $name
+     * @param  string $symbol
+     *
+     * @return Response
+     */
+    public function addAssetToWatchlistByName($name, $symbol)
+    {
+        $qs = ["name" => $name];
+        $body = ["symbol" => $symbol];
+
+        return $this->_request("watchlists:by_name", $qs, "POST", $body);
+    }
+    
+    /**
+     * Delete a watchlist
+     * 
+     * @param string $id
+     *
+     * @return Response
+     */
+    public function deleteWatchlist($id)
+    {
+        return $this->_request("watchlists/{$id}", [], "DELETE");
+    }
+
+    /**
+     * Delete a watchlist by name
+     * 
+     * @param string $name
+     * 
+     * @return Response
+     */
+    public function deleteWatchlistByName($name)
+    {
+        $qs = ["name" => $name];
+
+        return $this->_request("watchlists:by_name", $qs, "DELETE");
     }
 
     /**
@@ -402,6 +663,28 @@ class Alpaca
     public function getClock()
     {
         return $this->_request("clock");
+    }
+    
+    /**
+     * Get account configurations
+     *
+     * @return Response
+     */
+    public function getAccountConfigurations()
+    {
+        return $this->_request("account/configurations");
+    }
+    
+    /**
+     * Update account configurations
+     *
+     * @param  array $config ['key' => 'value']
+     *
+     * @return Response
+     */
+    public function updateAccountConfigurations($config = [])
+    {
+        return $this->_request("account/configurations", [], "PATCH", $config);
     }
 
     /**
