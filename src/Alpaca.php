@@ -138,7 +138,7 @@ class Alpaca
      *
      * @return Response
      */
-    private function _request($path, $queryString = [], $type = "GET", $body = null, $domain = null)
+    private function _request($path, $queryString = [], $type = "GET", $body = null, $domain = null, $version = "v2")
     {
         try {
             $request = [
@@ -156,7 +156,7 @@ class Alpaca
                 $request['body'] = $body;
             }
 
-            $response = $this->client->request($type, $this->_buildUrl($path, $queryString, $domain), $request);
+            $response = $this->client->request($type, $this->_buildUrl($path, $queryString, $domain, $version), $request);
 
             return new Response($response);
         } catch (\GuzzleHttp\Exception\TransferException $e) {
@@ -305,9 +305,9 @@ class Alpaca
 
     /**
      * Cancel all orders
-     * 
+     *
      * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#cancel-all-orders
-     * 
+     *
      * @return Response
      */
     public function cancelAllOrders()
@@ -386,10 +386,10 @@ class Alpaca
     {
         return $this->_request("positions/{$symbol}");
     }
-    
+
     /**
      * Close all positions
-     * 
+     *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/positions/#close-all-positions
      *
      * @return Response
@@ -401,7 +401,7 @@ class Alpaca
 
     /**
      * Close a position
-     * 
+     *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/positions/#close-a-position
      *
      * @param  string $symbol
@@ -437,7 +437,7 @@ class Alpaca
 
         return $this->_request("assets", $qs);
     }
-    
+
     /**
      * Get an asset by ID
      *
@@ -465,10 +465,10 @@ class Alpaca
     {
         return $this->_request("assets/{$symbol}");
     }
-    
+
     /**
      * Get a list of watchlists
-     * 
+     *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#get-a-list-of-watchlists
      *
      * @return Response
@@ -477,7 +477,7 @@ class Alpaca
     {
         return $this->_request("watchlists");
     }
-    
+
     /**
      * Create a new watchlist with an initial set of assets
      *
@@ -497,10 +497,10 @@ class Alpaca
 
         return $this->_request("watchlists", [], "POST", $body);
     }
-    
+
     /**
      * Get a watchlist
-     * 
+     *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#get-a-watchlist
      *
      * @param  string $id
@@ -514,7 +514,7 @@ class Alpaca
 
     /**
      * Get a watchlist by name
-     * 
+     *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#endpoints-for-watchlist-name
      *
      * @param  string $name
@@ -524,12 +524,12 @@ class Alpaca
     public function getWatchlistByName($name)
     {
         $qs = [
-            'name' => $name
+            'name' => $name,
         ];
 
         return $this->_request("watchlists:by_name", $qs);
     }
-    
+
     /**
      * Update a watchlist by replacing it's contents/symbols.
      *
@@ -548,7 +548,7 @@ class Alpaca
 
         $this->_request("watchlists/{$id}", [], "PUT", $body);
     }
-    
+
     /**
      * Update a watchlist by name.
      *
@@ -560,7 +560,7 @@ class Alpaca
     public function updateWatchlistByName($name, $symbols = [])
     {
         $qs = [
-            "name" => $name
+            "name" => $name,
         ];
 
         $body = [
@@ -570,7 +570,7 @@ class Alpaca
 
         return $this->_request("watchlists:by_name", $qs, "PUT", $body);
     }
-    
+
     /**
      * Add an asset to a watchlist
      *
@@ -585,7 +585,7 @@ class Alpaca
 
         return $this->_request("watchlists/{$id}", [], "POST", $body);
     }
-    
+
     /**
      * Add an asset to a watchlist by name.
      *
@@ -601,10 +601,10 @@ class Alpaca
 
         return $this->_request("watchlists:by_name", $qs, "POST", $body);
     }
-    
+
     /**
      * Delete a watchlist
-     * 
+     *
      * @param string $id
      *
      * @return Response
@@ -616,9 +616,9 @@ class Alpaca
 
     /**
      * Delete a watchlist by name
-     * 
+     *
      * @param string $name
-     * 
+     *
      * @return Response
      */
     public function deleteWatchlistByName($name)
@@ -664,7 +664,7 @@ class Alpaca
     {
         return $this->_request("clock");
     }
-    
+
     /**
      * Get account configurations
      *
@@ -674,7 +674,7 @@ class Alpaca
     {
         return $this->_request("account/configurations");
     }
-    
+
     /**
      * Update account configurations
      *
@@ -685,6 +685,97 @@ class Alpaca
     public function updateAccountConfigurations($config = [])
     {
         return $this->_request("account/configurations", [], "PATCH", $config);
+    }
+
+    /**
+     * Get account activities of a specified type
+     *
+     * @param  string $type
+     * @param  string $date
+     * @param  string $until
+     * @param  string $after
+     * @param  string $direction
+     * @param  string $page_size
+     * @param  string $page_token
+     *
+     * @return Response
+     */
+    public function getAccountActivitiesOfType($type, $date = null, $until = null, $after = null, $direction = null, $page_size = null, $page_token = null)
+    {
+        $qs = [];
+
+        if (!is_null($date)) {
+            $qs['date'] = (new Carbon($date))->format('Y-m-d');
+        }
+
+        if (!is_null($until)) {
+            $qs['until'] = (new Carbon($until))->format('Y-m-d');
+        }
+
+        if (!is_null($after)) {
+            $qs['after'] = (new Carbon($after))->format('Y-m-d');
+        }
+
+        if (!is_null($direction)) {
+            $qs['direction'] = $direction;
+        }
+
+        if (!is_null($page_size)) {
+            $qs['page_size'] = $page_size;
+        }
+
+        if (!is_null($page_token)) {
+            $qs['page_token'] = $page_token;
+        }
+
+        return $this->_request("account/activities/{$type}", $qs);
+    }
+
+    /**
+     * Get account activities
+     *
+     * @param  string[] $types
+     *
+     * @return Response
+     */
+    public function getAccountActivities($types = [])
+    {
+        $qs = ['activity_types' => $types];
+
+        return $this->_request("account/activities", $qs);
+    }
+
+    /**
+     * Get portfolio history
+     *
+     * @param  string $period
+     * @param  string $timeframe
+     * @param  string $date_end
+     * @param  boolean $extended_hours
+     *
+     * @return Response
+     */
+    public function getPortfolioHistory($period = null, $timeframe = null, $date_end = null, $extended_hours = null)
+    {
+        $qs = [];
+
+        if (!is_null($period)) {
+            $qs['period'] = $period;
+        }
+
+        if (!is_null($timeframe)) {
+            $qs['timeframe'] = $timeframe;
+        }
+
+        if (!is_null($date_end)) {
+            $qs['date_end'] = $date_end;
+        }
+
+        if (!is_null($extended_hours)) {
+            $qs['extended_hours'] = $extended_hours;
+        }
+
+        return $this->_request("account/portfolio/history", $qs);
     }
 
     /**
@@ -732,7 +823,7 @@ class Alpaca
             $qs['until'] = $until;
         }
 
-        return $this->_request("bars/{$timeframe}", $qs, "GET", null, "https://data.alpaca.markets");
+        return $this->_request("bars/{$timeframe}", $qs, "GET", null, "https://data.alpaca.markets", "v1");
     }
 
     /**
