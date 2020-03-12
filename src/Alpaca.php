@@ -27,6 +27,14 @@ class Alpaca
      * @var string
      */
     private $secret;
+    
+    /**
+     * Access Token. If present, this will be used instead of
+     * $key and $secret for authentication.
+     *
+     * @var string
+     */
+    private $accessToken;
 
     /**
      * Whether or not to use the paper trading endpoint
@@ -45,11 +53,12 @@ class Alpaca
      *
      * @return void
      */
-    public function __construct($key = "", $secret = "", $paper = true)
+    public function __construct($key = "", $secret = "", $paper = true, $accessToken = null)
     {
-        $this->key = $key;
-        $this->secret = $secret;
-        $this->paper = $paper;
+        $this->setKey($key);
+        $this->setSecret($secret);
+        $this->setPaper($paper);
+        $this->setAccessToken($accessToken);
 
         $this->client = new Client();
     }
@@ -90,6 +99,11 @@ class Alpaca
         $this->paper = $paper;
     }
 
+    public function setAccessToken($token)
+    {
+        $this->accessToken = $token;
+    }
+
     /**
      * Build a request URL from the various parts
      *
@@ -124,7 +138,13 @@ class Alpaca
 
         $path = trim($path, "/");
 
-        return "{$domain}/{$version}/{$path}{$queryString}";
+        if (!is_null($version)) {
+            $version = "/{$version}/";
+        } else {
+            $version = "";
+        }
+
+        return "{$domain}{$version}{$path}{$queryString}";
     }
 
     /**
@@ -147,10 +167,15 @@ class Alpaca
                 "headers" => [
                     "Content-Type" => "application/json",
                     "Accept" => "application/json",
-                    "APCA-API-KEY-ID" => "{$this->key}",
-                    "APCA-API-SECRET-KEY" => "{$this->secret}",
                 ],
             ];
+
+            if (!is_null($this->accessToken)) {
+                $request["headers"]["Authorization"] = "Bearer {$this->accessToken}";
+            } else {
+                $request["headers"]["APCA-API-KEY-ID"] = "{$this->key}";
+                $request["headers"]["APCA-API-SECRET-KEY"] = "{$this->secret}";
+            }
 
             if (is_array($body)) {
                 $request["body"] = json_encode($body);
@@ -852,6 +877,63 @@ class Alpaca
         }
 
         return $this->_request("bars/{$timeframe}", $qs, "GET", null, "https://data.alpaca.markets", "v1");
+    }
+    
+    /**
+     * Get the OAuth Authorization URL for the provided parameters:
+     * $client_id, $redirect_uri, $scope, and $state.
+     *
+     * @param  string $client_id
+     * @param  string $redirect_uri
+     * @param  string $scope A space-delimited list of valid scopes (account:write, trading, data)
+     * @param  string $state
+     *
+     * @return string The URL to redirect the user to
+     */
+    public function getOauthAuthorizeUrl($client_id, $redirect_uri, $scope = "", $state = null)
+    {
+        $redirect_uri = urlencode($redirect_uri);
+
+        if (is_null($state)) {
+            $state = bin2hex(random_bytes(8));
+        }
+
+        $scope = urlencode($scope);
+
+        return "https://app.alpaca.markets/oauth/authorize?response_type=code&client_id={$client_id}&redirect_uri={$redirect_uri}&state={$state}&scope={$scope}";
+    }
+    
+    /**
+     * Exchange an OAuth authorization code for an access token.
+     *
+     * @param  string $code The Authorization code returned from Alapaca in the URL when the user was redirected back to your application.
+     * @param  string $client_id Your applications Client ID.
+     * @param  string $client_secret Your applications Client Secret.
+     * @param  string $redirect_uri Should be the same $redirect_uri used in the `getOauthAuthorizeUrl()` call.
+     *
+     * @return Response
+     */
+    public function getOauthAccessToken($code, $client_id, $client_secret, $redirect_uri)
+    {
+        $body = [
+            "grant_type" => "authorization_code",
+            "code" => $code,
+            "client_id" => $client_id,
+            "client_secret" => $client_secret,
+            "redirect_uri" => $redirect_uri,
+        ];
+
+        return $this->_request("oauth/token", [], "POST", $body, "https://api.alpaca.markets/", null);
+    }
+    
+    /**
+     * Get the details of the current OAuth access token.
+     *
+     * @return Response
+     */
+    public function getOauthAccessTokenDetails()
+    {
+        return $this->_request("oauth/token", [], "GET", null, "https://api.alpaca.markets/", null);
     }
 
     public function __call($method, $args)
