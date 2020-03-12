@@ -41,6 +41,37 @@ $alpaca = new Alpaca("--KEY--", "--SECRET--");
 $positions = $alpaca->getPositions();
 ```
 
+## OAuth
+
+From `v2.1.0` this package supports authenticating users via OAuth to
+the Alpaca API. For a detailed explanation on the OAuth flow, see
+[the Alpaca Docs](https://docs.alpaca.markets/build-apps_services-with-alpaca/oauth-guide/#integration).
+
+The following methods can be used to request Authorization to access
+an external users Alpaca account and retrieve an access token to make
+API calls on their behalf.
+
+**`getOauthAuthorizeUrl($client_id, $redirect_uri, $scope = "", $state = null)`**
+
+Provide your applications `$client_id` and an authorized/whitelisted
+`$redirect_uri` as well as your desired `$scope` and a random `$state`
+value. This function will return the URL to which you should redirect
+your user to in order to Authorize your application to access their account.
+
+**`getOauthAccessToken($code, $client_id, $client_secret, $redirect_uri)`**
+
+Once the user has authorized your application to access their account, Alpaca
+will redirect the user back to your application (`$redirect_uri`). In the URL
+will be a `code` parameter, you will pass that as the `$code` parameter to this
+function along with your `$client_id` and `$client_secret` and your original
+`$redirect_url`. This function will return an access token that can then be used
+to call the Alpaca API on behalf of that user/account.
+
+To start using the access token call **`setAccessToken($token)`** with the value of the token.
+
+Once authenticated, you can call **`getOauthAccessTokenDetails()`** to
+get the details of the access token (status, validity, etc).
+
 ## API
 
 ### Constructor
@@ -135,7 +166,7 @@ Returns the account associated with the API key.
 
 ### Orders
 
-:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/orders/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/orders/)
 
 **`getOrders($status = null, $limit = null, $after = null, $until = null, $direction = null, $nested = null)`**
 
@@ -179,7 +210,7 @@ the request.
 
 ### Positions
 
-:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/positions/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/positions/)
 
 **`getPositions()`**
 
@@ -205,7 +236,7 @@ Works for both long and short positions.
 
 ### Assets
 
-:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/assets/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/assets/)
 
 **`getAssets($status = null, $asset_class = null)`**
 
@@ -271,7 +302,7 @@ Delete a watchlist. This is a permanent deletion.
 
 ### Calendar
 
-:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/calendar/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/calendar/)
 
 **`getCalendar($start = null, $end = null)`**
 
@@ -281,7 +312,7 @@ Returns the market calendar.
 
 ### Clock
 
-:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/web-api/clock/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/clock/)
 
 **`getClock()`**
 
@@ -290,6 +321,8 @@ Returns the market clock.
 ---
 
 ### Account Configurations
+
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/account-configuration/)
 
 **`getAccountConfigurations()`**
 
@@ -304,6 +337,8 @@ Updates and returns the current account configuration values.
 
 ### Account Activities
 
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/account-activities/)
+
 **`getAccountActivitiesOfType($type, $date = null, $until = null, $after = null, $direction = null, $page_size = null, $page_token = null)`**
 
 Returns account activity entries for a specific type of activity.
@@ -316,6 +351,8 @@ Returns account activity entries for many types of activities.
 
 ### Portfolio History
 
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/portfolio-history/)
+
 **`getPortfolioHistory($period = null, $timeframe = null, $date_end = null, $extended_hours = null)`**
 
 Returns timeseries data about equity and profit/loss (P/L) of the
@@ -325,7 +362,7 @@ account in requested timespan.
 
 ### Market Data
 
-:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/market-data/bars/)
+:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/market-data/bars)
 
 **`getBars($timeframe, $symbols, $limit = null, $start = null, $end = null, $after = null, $until = null)`**
 
