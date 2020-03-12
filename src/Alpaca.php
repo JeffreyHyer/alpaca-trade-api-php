@@ -39,9 +39,9 @@ class Alpaca
     /**
      * Alpaca API constructor
      *
-     * @param string $domain    The company name/subdomain in BambooHR
-     * @param string $token     The API Token to use when sending requests
-     * @param array  $options   An array of options ['base_uri', 'version'] to override the defaults
+     * @param string $key       The Alpaca account key
+     * @param string $secret    The Alpaca account secret key
+     * @param boolean $paper    Use the paper trading endpoint (true) or the production endpoint (false)
      *
      * @return void
      */
@@ -55,7 +55,7 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Set the account key.
      *
      * @param string $key
      *
@@ -67,7 +67,7 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Set the account secret key.
      *
      * @param string $secret
      *
@@ -79,7 +79,7 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Set whether or not to use the paper trading endpoint.
      *
      * @param boolean $paper
      *
@@ -91,12 +91,12 @@ class Alpaca
     }
 
     /**
-     * [_buildUrl description]
+     * Build a request URL from the various parts
      *
-     * @param  string $path         [description]
-     * @param  array  $queryStrings [description]
+     * @param  string $path
+     * @param  array  $queryStrings
      *
-     * @return string               [description]
+     * @return string
      */
     private function _buildUrl($path = "", $queryStrings = [], $domain = null, $version = "v2")
     {
@@ -128,7 +128,9 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Make a request to a specified endpoint path with optional
+     * query string parameters, request type (GET, POST, etc)
+     * and request content/body.
      *
      * @param string $path
      * @param array $queryString
@@ -142,18 +144,18 @@ class Alpaca
     {
         try {
             $request = [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
-                    'APCA-API-KEY-ID' => "{$this->key}",
-                    'APCA-API-SECRET-KEY' => "{$this->secret}",
+                "headers" => [
+                    "Content-Type" => "application/json",
+                    "Accept" => "application/json",
+                    "APCA-API-KEY-ID" => "{$this->key}",
+                    "APCA-API-SECRET-KEY" => "{$this->secret}",
                 ],
             ];
 
             if (is_array($body)) {
-                $request['body'] = json_encode($body);
+                $request["body"] = json_encode($body);
             } elseif (!empty($body)) {
-                $request['body'] = $body;
+                $request["body"] = $body;
             }
 
             $response = $this->client->request($type, $this->_buildUrl($path, $queryString, $domain, $version), $request);
@@ -169,7 +171,7 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Get the current account.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/account/#get-the-account
      *
@@ -181,15 +183,15 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Get a list of orders.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#get-a-list-of-orders
      *
-     * @param string $status 'open', 'closed', 'all'
+     * @param string $status "open", "closed", "all"
      * @param int $limit Max 500, default 50
      * @param string $after
      * @param string $until
-     * @param string $direction 'asc', 'desc'
+     * @param string $direction "asc", "desc"
      * @param boolean $nested
      *
      * @return Response
@@ -199,34 +201,34 @@ class Alpaca
         $qs = [];
 
         if (!is_null($status)) {
-            $qs['status'] = $status;
+            $qs["status"] = $status;
         }
 
         if (!is_null($limit)) {
-            $qs['limit'] = $limit;
+            $qs["limit"] = $limit;
         }
 
         if (!is_null($after)) {
-            $qs['after'] = $after;
+            $qs["after"] = $after;
         }
 
         if (!is_null($until)) {
-            $qs['until'] = $until;
+            $qs["until"] = $until;
         }
 
         if (!is_null($direction)) {
-            $qs['direction'] = $direction;
+            $qs["direction"] = $direction;
         }
 
         if (!is_null($nested)) {
-            $qs['nested'] = $nested;
+            $qs["nested"] = $nested;
         }
 
         return $this->_request("orders", $qs);
     }
 
     /**
-     * Undocumented function
+     * Get an order specified by the order ID.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#get-an-order
      *
@@ -240,7 +242,7 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Get an order specified by the client order ID.
      *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/orders/#get-an-order-by-client-order-id
      *
@@ -250,11 +252,11 @@ class Alpaca
      */
     public function getOrderByClientId($client_order_id)
     {
-        return $this->_request("orders:by_client_order_id", ['client_order_id' => $client_order_id]);
+        return $this->_request("orders:by_client_order_id", ["client_order_id" => $client_order_id]);
     }
 
     /**
-     * Undocumented function
+     * Replace/update an order with newly specified paramters.
      *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/orders/#replace-an-order
      *
@@ -270,27 +272,27 @@ class Alpaca
     public function replaceOrder($order_id, $qty, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null)
     {
         $body = [
-            'qty' => $qty,
-            'time_in_force' => $time_in_force,
+            "qty" => $qty,
+            "time_in_force" => $time_in_force,
         ];
 
         if (!is_null($limit_price)) {
-            $body['limit_price'] = $limit_price;
+            $body["limit_price"] = $limit_price;
         }
 
         if (!is_null($stop_price)) {
-            $body['stop_price'] = $stop_price;
+            $body["stop_price"] = $stop_price;
         }
 
         if (!is_null($client_order_id)) {
-            $body['client_order_id'] = $client_order_id;
+            $body["client_order_id"] = $client_order_id;
         }
 
         return $this->_request("orders/{$order_id}", [], "PATCH", $body);
     }
 
     /**
-     * Undocumented function
+     * Cancel an order.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#cancel-an-order
      *
@@ -304,7 +306,7 @@ class Alpaca
     }
 
     /**
-     * Cancel all orders
+     * Cancel all orders.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#cancel-all-orders
      *
@@ -316,17 +318,17 @@ class Alpaca
     }
 
     /**
-     * Create a new order
+     * Create a new order.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/orders/#request-a-new-order
      *
      * @param string $symbol
      * @param int $qty
-     * @param string $side 'buy' or 'sell'
-     * @param string $type 'market', 'limit', 'stop', 'stop_limit'
-     * @param string $time_in_force 'day', 'gtc', 'opg', 'cls', 'ioc', 'fok'
-     * @param double $limit_price Required if type is 'limit' or 'stop_limit'
-     * @param double $stop_price Required if type is 'stop' or 'stop_limit'
+     * @param string $side "buy" or "sell"
+     * @param string $type "market", "limit", "stop", "stop_limit"
+     * @param string $time_in_force "day", "gtc", "opg", "cls", "ioc", "fok"
+     * @param double $limit_price Required if type is "limit" or "stop_limit"
+     * @param double $stop_price Required if type is "stop" or "stop_limit"
      * @param string $client_order_id Max 48 chars
      * @param boolean $extended_hours default: false
      *
@@ -335,34 +337,34 @@ class Alpaca
     public function createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null, $extended_hours = null)
     {
         $body = [
-            'symbol' => $symbol,
-            'qty' => $qty,
-            'side' => $side,
-            'type' => $type,
-            'time_in_force' => $time_in_force,
+            "symbol" => $symbol,
+            "qty" => $qty,
+            "side" => $side,
+            "type" => $type,
+            "time_in_force" => $time_in_force,
         ];
 
         if (!is_null($limit_price)) {
-            $body['limit_price'] = $limit_price;
+            $body["limit_price"] = $limit_price;
         }
 
         if (!is_null($stop_price)) {
-            $body['stop_price'] = $stop_price;
+            $body["stop_price"] = $stop_price;
         }
 
         if (!is_null($client_order_id)) {
-            $body['client_order_id'] = $client_order_id;
+            $body["client_order_id"] = $client_order_id;
         }
 
         if (!is_null($extended_hours)) {
-            $body['extended_hours'] = $extended_hours;
+            $body["extended_hours"] = $extended_hours;
         }
 
         return $this->_request("orders", [], "POST", $body);
     }
 
     /**
-     * Undocumented function
+     * Get all positions for the account.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/positions/#get-open-positions
      *
@@ -374,7 +376,7 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Get a specific position.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/positions/#get-an-open-position
      *
@@ -388,7 +390,7 @@ class Alpaca
     }
 
     /**
-     * Close all positions
+     * Close all positions.
      *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/positions/#close-all-positions
      *
@@ -400,7 +402,7 @@ class Alpaca
     }
 
     /**
-     * Close a position
+     * Close a position.
      *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/positions/#close-a-position
      *
@@ -414,12 +416,12 @@ class Alpaca
     }
 
     /**
-     * Get assets
+     * Get assets.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/assets/#get-assets
      *
-     * @param string $status 'active', etc.
-     * @param string $asset_class 'us_equity', etc.
+     * @param string $status "active", etc.
+     * @param string $asset_class "us_equity", etc.
      *
      * @return Response
      */
@@ -428,18 +430,18 @@ class Alpaca
         $qs = [];
 
         if (!is_null($status)) {
-            $qs['status'] = $status;
+            $qs["status"] = $status;
         }
 
         if (!is_null($asset_class)) {
-            $qs['asset_class'] = $asset_class;
+            $qs["asset_class"] = $asset_class;
         }
 
         return $this->_request("assets", $qs);
     }
 
     /**
-     * Get an asset by ID
+     * Get an asset by ID.
      *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/assets/#get-assets/:id
      *
@@ -453,7 +455,7 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Get an asset for the given symbol.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/assets/#get-an-asset
      *
@@ -467,7 +469,7 @@ class Alpaca
     }
 
     /**
-     * Get a list of watchlists
+     * Get a list of watchlists.
      *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#get-a-list-of-watchlists
      *
@@ -479,7 +481,7 @@ class Alpaca
     }
 
     /**
-     * Create a new watchlist with an initial set of assets
+     * Create a new watchlist with an initial set of assets.
      *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#create-a-watchlist
      *
@@ -499,7 +501,7 @@ class Alpaca
     }
 
     /**
-     * Get a watchlist
+     * Get a watchlist.
      *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#get-a-watchlist
      *
@@ -513,7 +515,7 @@ class Alpaca
     }
 
     /**
-     * Get a watchlist by name
+     * Get a watchlist by name.
      *
      * @link https://docs.alpaca.markets/api-documentation/api-v2/watchlist/#endpoints-for-watchlist-name
      *
@@ -524,7 +526,7 @@ class Alpaca
     public function getWatchlistByName($name)
     {
         $qs = [
-            'name' => $name,
+            "name" => $name,
         ];
 
         return $this->_request("watchlists:by_name", $qs);
@@ -572,7 +574,7 @@ class Alpaca
     }
 
     /**
-     * Add an asset to a watchlist
+     * Add an asset to a watchlist.
      *
      * @param  string $id
      * @param  string $symbol
@@ -603,7 +605,7 @@ class Alpaca
     }
 
     /**
-     * Delete a watchlist
+     * Delete a watchlist.
      *
      * @param string $id
      *
@@ -615,7 +617,7 @@ class Alpaca
     }
 
     /**
-     * Delete a watchlist by name
+     * Delete a watchlist by name.
      *
      * @param string $name
      *
@@ -629,7 +631,7 @@ class Alpaca
     }
 
     /**
-     * Undocumented function
+     * Get the market calendar.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/calendar/#get-the-calendar
      *
@@ -643,18 +645,18 @@ class Alpaca
         $qs = [];
 
         if (!is_null($start)) {
-            $qs['start'] = (new Carbon($start))->format('Y-m-d');
+            $qs["start"] = (new Carbon($start))->format("Y-m-d");
         }
 
         if (!is_null($end)) {
-            $qs['end'] = (new Carbon($end))->format('Y-m-d');
+            $qs["end"] = (new Carbon($end))->format("Y-m-d");
         }
 
         return $this->_request("calendar", $qs);
     }
 
     /**
-     * Undocumented function
+     * Get the current market time and status.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/clock/#get-the-clock
      *
@@ -666,7 +668,7 @@ class Alpaca
     }
 
     /**
-     * Get account configurations
+     * Get account configurations.
      *
      * @return Response
      */
@@ -676,9 +678,9 @@ class Alpaca
     }
 
     /**
-     * Update account configurations
+     * Update account configurations.
      *
-     * @param  array $config ['key' => 'value']
+     * @param  array $config ["key" => "value"]
      *
      * @return Response
      */
@@ -688,7 +690,7 @@ class Alpaca
     }
 
     /**
-     * Get account activities of a specified type
+     * Get account activities of a specified type.
      *
      * @param  string $type
      * @param  string $date
@@ -705,48 +707,74 @@ class Alpaca
         $qs = [];
 
         if (!is_null($date)) {
-            $qs['date'] = (new Carbon($date))->format('Y-m-d');
+            $qs["date"] = (new Carbon($date))->format("Y-m-d");
         }
 
         if (!is_null($until)) {
-            $qs['until'] = (new Carbon($until))->format('Y-m-d');
+            $qs["until"] = (new Carbon($until))->format("Y-m-d");
         }
 
         if (!is_null($after)) {
-            $qs['after'] = (new Carbon($after))->format('Y-m-d');
+            $qs["after"] = (new Carbon($after))->format("Y-m-d");
         }
 
         if (!is_null($direction)) {
-            $qs['direction'] = $direction;
+            $qs["direction"] = $direction;
         }
 
         if (!is_null($page_size)) {
-            $qs['page_size'] = $page_size;
+            $qs["page_size"] = $page_size;
         }
 
         if (!is_null($page_token)) {
-            $qs['page_token'] = $page_token;
+            $qs["page_token"] = $page_token;
         }
 
         return $this->_request("account/activities/{$type}", $qs);
     }
 
     /**
-     * Get account activities
+     * Get account activities.
      *
      * @param  string[] $types
      *
      * @return Response
      */
-    public function getAccountActivities($types = [])
+    public function getAccountActivities($types = [], $date = null, $until = null, $after = null, $direction = null, $page_size = null, $page_token = null)
     {
-        $qs = ['activity_types' => $types];
+        $qs = [
+            "activity_types" => $types,
+        ];
+
+        if (!is_null($date)) {
+            $qs["date"] = (new Carbon($date))->format("Y-m-d");
+        }
+
+        if (!is_null($until)) {
+            $qs["until"] = (new Carbon($until))->format("Y-m-d");
+        }
+
+        if (!is_null($after)) {
+            $qs["after"] = (new Carbon($after))->format("Y-m-d");
+        }
+
+        if (!is_null($direction)) {
+            $qs["direction"] = $direction;
+        }
+
+        if (!is_null($page_size)) {
+            $qs["page_size"] = $page_size;
+        }
+
+        if (!is_null($page_token)) {
+            $qs["page_token"] = $page_token;
+        }
 
         return $this->_request("account/activities", $qs);
     }
 
     /**
-     * Get portfolio history
+     * Get portfolio history.
      *
      * @param  string $period
      * @param  string $timeframe
@@ -760,36 +788,36 @@ class Alpaca
         $qs = [];
 
         if (!is_null($period)) {
-            $qs['period'] = $period;
+            $qs["period"] = $period;
         }
 
         if (!is_null($timeframe)) {
-            $qs['timeframe'] = $timeframe;
+            $qs["timeframe"] = $timeframe;
         }
 
         if (!is_null($date_end)) {
-            $qs['date_end'] = $date_end;
+            $qs["date_end"] = $date_end;
         }
 
         if (!is_null($extended_hours)) {
-            $qs['extended_hours'] = $extended_hours;
+            $qs["extended_hours"] = $extended_hours;
         }
 
         return $this->_request("account/portfolio/history", $qs);
     }
 
     /**
-     * Undocumented function
+     * Get market data from IEX.
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/market-data/bars/#get-a-list-of-bars
      *
-     * @param string        $timeframe  One of: 'minute', '1Min', '5Min', '15Min', 'day', '1D'.
+     * @param string        $timeframe  One of: "minute", "1Min", "5Min", "15Min", "day", "1D".
      * @param string|array  $symbols    One or more (max 200) symbol names.
      * @param int           $limit      The maximum number of bars to be returned for each symbol. Max = 1000. Default = 100.
-     * @param string        $start      Filter bars equal to or after this time. Cannot be used with 'after'.
-     * @param string        $end        Filter bars equal to or before this time. Cannot be used with 'until'.
-     * @param string        $after      Filter bars after this time. Cannot be used with 'start'.
-     * @param string        $until      Filter bars before this time. Cannot be used with 'end'.
+     * @param string        $start      Filter bars equal to or after this time. Cannot be used with "after".
+     * @param string        $end        Filter bars equal to or before this time. Cannot be used with "until".
+     * @param string        $after      Filter bars after this time. Cannot be used with "start".
+     * @param string        $until      Filter bars before this time. Cannot be used with "end".
      *
      * @return Response
      */
@@ -798,42 +826,34 @@ class Alpaca
         $qs = [];
 
         if (is_array($symbols)) {
-            $qs['symbols'] = implode(",", $symbols);
+            $qs["symbols"] = implode(",", $symbols);
         } else {
-            $qs['symbols'] = $symbols;
+            $qs["symbols"] = $symbols;
         }
 
         if (!is_null($limit)) {
-            $qs['limit'] = $limit;
+            $qs["limit"] = $limit;
         }
 
         if (!is_null($start)) {
-            $qs['start'] = $start;
+            $qs["start"] = $start;
         }
 
         if (!is_null($end)) {
-            $qs['end'] = $end;
+            $qs["end"] = $end;
         }
 
         if (!is_null($after)) {
-            $qs['after'] = $after;
+            $qs["after"] = $after;
         }
 
         if (!is_null($until)) {
-            $qs['until'] = $until;
+            $qs["until"] = $until;
         }
 
         return $this->_request("bars/{$timeframe}", $qs, "GET", null, "https://data.alpaca.markets", "v1");
     }
 
-    /**
-     * [__call description]
-     *
-     * @param  [type] $method [description]
-     * @param  [type] $args   [description]
-     *
-     * @return [type]         [description]
-     */
     public function __call($method, $args)
     {
         if (method_exists($this, $method)) {
@@ -843,13 +863,6 @@ class Alpaca
         throw new \Exception("Unknown method: {$method}");
     }
 
-    /**
-     * [__get description]
-     *
-     * @param  [type] $property [description]
-     *
-     * @return [type]           [description]
-     */
     public function __get($property)
     {
         if (method_exists($this, $property)) {
