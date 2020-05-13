@@ -370,3 +370,11 @@ Retrieves a list of bars for each requested symbol. It is guaranteed
 all bars are in ascending order by time. Currently, no “incomplete”
 bars are returned. For example, a 1 minute bar for 09:30 will not be
 returned until 09:31.
+
+**`getLastTrade($symbol)`**
+
+Retrieve the last trade for the requested symbol.
+
+**`getLastQuote($symbol)`**
+
+Retrieves the last quote for the requested symbol.

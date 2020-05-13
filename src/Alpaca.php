@@ -834,7 +834,7 @@ class Alpaca
     /**
      * Get market data from IEX.
      *
-     * @link https://docs.alpaca.markets/api-documentation/web-api/market-data/bars/#get-a-list-of-bars
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/bars/
      *
      * @param string        $timeframe  One of: "minute", "1Min", "5Min", "15Min", "day", "1D".
      * @param string|array  $symbols    One or more (max 200) symbol names.
@@ -877,6 +877,34 @@ class Alpaca
         }
 
         return $this->_request("bars/{$timeframe}", $qs, "GET", null, "https://data.alpaca.markets", "v1");
+    }
+
+    /**
+     * Retrieve the last trade for the requested symbol.
+     * 
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/
+     * 
+     * @param string $symbol
+     * 
+     * @return Response
+     */
+    public function getLastTrade($symbol)
+    {
+        return $this->_request("last/stocks/{$symbol}", [], "GET", null, "https://data.alpaca.markets", "v1");
+    }
+
+    /**
+     * Retrieves the last quote for the requested symbol.
+     * 
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/
+     * 
+     * @param string $symbol
+     * 
+     * @return Response
+     */
+    public function getLastQuote($symbol)
+    {
+        return $this->_request("last_quote/stocks/{$symbol}", [], "GET", null, "https://data.alpaca.markets", "v1");
     }
     
     /**
