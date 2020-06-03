@@ -173,7 +173,7 @@ Returns the account associated with the API key.
 Retrieves a list of orders for the account, optionally filtered by the
 supplied query parameters.
 
-**`createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null)`**
+**`createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null, $extended_hours = null, $order_class = null, $additional = [])`**
 
 Places a new order for the given account. An order request may be
 rejected if the account is not authorized for trading, or if the

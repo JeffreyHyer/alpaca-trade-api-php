@@ -27,7 +27,7 @@ class Alpaca
      * @var string
      */
     private $secret;
-    
+
     /**
      * Access Token. If present, this will be used instead of
      * $key and $secret for authentication.
@@ -356,11 +356,12 @@ class Alpaca
      * @param double $stop_price Required if type is "stop" or "stop_limit"
      * @param string $client_order_id Max 48 chars
      * @param boolean $extended_hours default: false
-     * @param array $additional default: []
+     * @param array $additional ['take_profit' => ['limit_price' => $limti_price], 'stop_loss' => ['stop_price' => $stop_price]], default: []
      *
      * @return Response
      */
-    public function createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $extended_hours = null, $client_order_id = null, $order_class=null, $additional=[]){
+    public function createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null, $extended_hours = null, $order_class = null, $additional = [])
+    {
         $body = [
             "symbol" => $symbol,
             "qty" => $qty,
@@ -389,15 +390,14 @@ class Alpaca
             $body["order_class"] = $order_class;
         }
 
-        if(!empty($additional)){
-            foreach($additional as $key=>$val){
+        if (!empty($additional)) {
+            foreach ($additional as $key => $val) {
                 $body[$key] = $val;
             }
         }
 
         return $this->_request("orders", [], "POST", $body);
     }
-
 
     /**
      * Get all positions for the account.
@@ -892,11 +892,11 @@ class Alpaca
 
     /**
      * Retrieve the last trade for the requested symbol.
-     * 
+     *
      * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/
-     * 
+     *
      * @param string $symbol
-     * 
+     *
      * @return Response
      */
     public function getLastTrade($symbol)
@@ -906,18 +906,18 @@ class Alpaca
 
     /**
      * Retrieves the last quote for the requested symbol.
-     * 
+     *
      * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/
-     * 
+     *
      * @param string $symbol
-     * 
+     *
      * @return Response
      */
     public function getLastQuote($symbol)
     {
         return $this->_request("last_quote/stocks/{$symbol}", [], "GET", null, "https://data.alpaca.markets", "v1");
     }
-    
+
     /**
      * Get the OAuth Authorization URL for the provided parameters:
      * $client_id, $redirect_uri, $scope, and $state.
@@ -941,7 +941,7 @@ class Alpaca
 
         return "https://app.alpaca.markets/oauth/authorize?response_type=code&client_id={$client_id}&redirect_uri={$redirect_uri}&state={$state}&scope={$scope}";
     }
-    
+
     /**
      * Exchange an OAuth authorization code for an access token.
      *
@@ -964,7 +964,7 @@ class Alpaca
 
         return $this->_request("oauth/token", [], "POST", $body, "https://api.alpaca.markets/", null);
     }
-    
+
     /**
      * Get the details of the current OAuth access token.
      *
