@@ -356,11 +356,11 @@ class Alpaca
      * @param double $stop_price Required if type is "stop" or "stop_limit"
      * @param string $client_order_id Max 48 chars
      * @param boolean $extended_hours default: false
+     * @param array $additional default: []
      *
      * @return Response
      */
-    public function createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $client_order_id = null, $extended_hours = null)
-    {
+    public function createOrder($symbol, $qty, $side, $type, $time_in_force, $limit_price = null, $stop_price = null, $extended_hours = null, $client_order_id = null, $order_class=null, $additional=[]){
         $body = [
             "symbol" => $symbol,
             "qty" => $qty,
@@ -377,16 +377,27 @@ class Alpaca
             $body["stop_price"] = $stop_price;
         }
 
-        if (!is_null($client_order_id)) {
-            $body["client_order_id"] = $client_order_id;
-        }
-
         if (!is_null($extended_hours)) {
             $body["extended_hours"] = $extended_hours;
         }
 
+        if (!is_null($client_order_id)) {
+            $body["client_order_id"] = $client_order_id;
+        }
+
+        if (!is_null($order_class)) {
+            $body["order_class"] = $order_class;
+        }
+
+        if(!empty($additional)){
+            foreach($additional as $key=>$val){
+                $body[$key] = $val;
+            }
+        }
+
         return $this->_request("orders", [], "POST", $body);
     }
+
 
     /**
      * Get all positions for the account.
