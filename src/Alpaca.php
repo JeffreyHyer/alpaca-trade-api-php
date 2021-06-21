@@ -186,7 +186,7 @@ class Alpaca
             $response = $this->client->request($type, $this->_buildUrl($path, $queryString, $domain, $version), $request);
 
             return new Response($response);
-        } catch (\GuzzleHttp\Exception\TransferException $e) {
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
             if ($e->hasResponse()) {
                 return new Response($e->getResponse());
             } else {
@@ -843,71 +843,95 @@ class Alpaca
     }
 
     /**
-     * Get market data from IEX.
+     * Returns trades for the queried stock symbol
      *
-     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/bars/
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#trades
      *
-     * @param string        $timeframe  One of: "minute", "1Min", "5Min", "15Min", "day", "1D".
-     * @param string|array  $symbols    One or more (max 200) symbol names.
-     * @param int           $limit      The maximum number of bars to be returned for each symbol. Max = 1000. Default = 100.
-     * @param string        $start      Filter bars equal to or after this time. Cannot be used with "after".
-     * @param string        $end        Filter bars equal to or before this time. Cannot be used with "until".
-     * @param string        $after      Filter bars after this time. Cannot be used with "start".
-     * @param string        $until      Filter bars before this time. Cannot be used with "end".
+     * @param string $symbol The symbol to query for
+     * @param string $start Filter data equal to or after this time. Fractions of a second are not accepted.
+     * @param string $end Filter data equal to or before this time. Fractions of a second are not accepted.
+     * @param integer $limit Number of data points to return. Must be in range 1-10000, defaults to 1000.
+     * @param string $page_token Pagination token to continue from.
      *
      * @return Response
      */
-    public function getBars($timeframe, $symbols, $limit = null, $start = null, $end = null, $after = null, $until = null)
+    public function getTrades($symbol, $start, $end, $limit = null, $page_token = null)
     {
         $qs = [];
 
-        if (is_array($symbols)) {
-            $qs["symbols"] = implode(",", $symbols);
-        } else {
-            $qs["symbols"] = $symbols;
-        }
-
-        if (!is_null($limit)) {
-            $qs["limit"] = $limit;
-        }
-
         if (!is_null($start)) {
-            $qs["start"] = $start;
+            $qs['start'] = (new Carbon($start))->format('Y-m-d\TH:i:s\Z');
         }
 
         if (!is_null($end)) {
-            $qs["end"] = $end;
+            $qs['end'] = (new Carbon($end))->format('Y-m-d\TH:i:s\Z');
         }
 
-        if (!is_null($after)) {
-            $qs["after"] = $after;
+        if (!is_null($limit)) {
+            $qs['limit'] = $limit;
         }
 
-        if (!is_null($until)) {
-            $qs["until"] = $until;
+        if (!is_null($page_token)) {
+            $qs['page_token'] = $page_token;
         }
 
-        return $this->_request("bars/{$timeframe}", $qs, "GET", null, "https://data.alpaca.markets", "v1");
+        return $this->_request("stocks/{$symbol}/trades", $qs, "GET", null, "https://data.alpaca.markets", "v2");
     }
 
     /**
-     * Retrieve the last trade for the requested symbol.
+     * Returns latest trade for the requested security.
+     * 
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-trade
      *
-     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-trade/
-     *
-     * @param string $symbol
+     * @param string $symbol The symbol to query for
      *
      * @return Response
      */
     public function getLastTrade($symbol)
     {
-        return $this->_request("last/stocks/{$symbol}", [], "GET", null, "https://data.alpaca.markets", "v1");
+        return $this->_request("stocks/{$symbol}/trades/latest", [], "GET", null, "https://data.alpaca.markets", "v2");
     }
 
     /**
-     * Retrieves the last quote for the requested symbol.
+     * Returns quote (NBBO) historical data for the requested security.
+     * 
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#quotes
      *
-     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/last-quote/
+     * @param string $symbol The symbol to query for
+     * @param string $start Filter data equal to or after this time. Fractions of a second are not accepted.
+     * @param string $end Filter data equal to or before this time. Fractions of a second are not accepted.
+     * @param integer $limit Number of data points to return. Must be in range 1-10000, defaults to 1000.
+     * @param string $page_token Pagination token to continue from.
+     *
+     * @return Response
+     */
+    public function getQuotes($symbol, $start, $end, $limit = null, $page_token = null)
+    {
+        $qs = [];
+
+        if (!is_null($start)) {
+            $qs['start'] = (new Carbon($start))->format('Y-m-d\TH:i:s\Z');
+        }
+
+        if (!is_null($end)) {
+            $qs['end'] = (new Carbon($end))->format('Y-m-d\TH:i:s\Z');
+        }
+
+        if (!is_null($limit)) {
+            $qs['limit'] = $limit;
+        }
+
+        if (!is_null($page_token)) {
+            $qs['page_token'] = $page_token;
+        }
+
+        return $this->_request("stocks/{$symbol}/quotes", $qs, "GET", null, "https://data.alpaca.markets", "v2");
+    }
+
+    /**
+     * Returns latest quote for the requested security.
+     *
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#latest-quote
      *
      * @param string $symbol
      *
@@ -915,7 +939,84 @@ class Alpaca
      */
     public function getLastQuote($symbol)
     {
-        return $this->_request("last_quote/stocks/{$symbol}", [], "GET", null, "https://data.alpaca.markets", "v1");
+        return $this->_request("stocks/{$symbol}/quotes/latest", [], "GET", null, "https://data.alpaca.markets", "v2");
+    }
+
+    /**
+     * Returns aggregate historical data for the requested security.
+     *
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#bars
+     *
+     * @param string        $timeframe  Timeframe for the aggregation. Available values are: "1Min", "5Min", "15Min", "1Hour", "1Day".
+     * @param string        $symbol     The symbol to query for
+     * @param string        $start      Filter data equal to or after this time. Fractions of a second are not accepted.
+     * @param string        $end        Filter data equal to or before this time. Fractions of a second are not accepted.
+     * @param int           $limit      Number of data points to return. Must be in range 1-10000, defaults to 1000.
+     * @param string        $page_token Pagination token to continue from.
+     *
+     * @return Response
+     */
+    public function getBars($timeframe, $symbol, $start, $end, $limit = null, $page_token = null)
+    {
+        $qs = [];
+
+        if (!is_null($timeframe)) {
+            $qs["timeframe"] = $timeframe;
+        }
+
+        if (!is_null($start)) {
+            $qs["start"] = (new Carbon($start))->format('Y-m-d\TH:i:s\Z');
+        }
+
+        if (!is_null($end)) {
+            $qs["end"] = (new Carbon($end))->format('Y-m-d\TH:i:s\Z');
+        }
+
+        if (!is_null($limit)) {
+            $qs["limit"] = $limit;
+        }
+
+        if (!is_null($page_token)) {
+            $qs["page_token"] = $page_token;
+        }
+
+        // print_r($qs);
+        // return null;
+
+        return $this->_request("stocks/{$symbol}/bars", $qs, "GET", null, "https://data.alpaca.markets", "v2");
+    }
+
+    /**
+     * Returns the snapshots for the requested securities.
+     * 
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---multiple-tickers
+     *
+     * @param string|array $symbols Array or comma-separated string of symbols to query for.
+     *
+     * @return Response
+     */
+    public function getMultiSnapshot($symbols)
+    {
+        if (is_array($symbols)) {
+            $qs['symbols'] = implode(',', $symbols);
+        } else {
+            $qs['symbols'] = $symbols;
+        }
+
+        return $this->_request("stocks/snapshots", $qs, "GET", null, "https://data.alpaca.markets", "v2");
+    }
+
+    /**
+     * Returns the snapshot for the requested security.
+     * 
+     * @link https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/#snapshot---ticker
+     *
+     * @param [type] $symbol
+     * @return void
+     */
+    public function getSnapshot($symbol)
+    {
+        return $this->_request("stocks/{$symbol}/snapshot", [], "GET", null, "https://data.alpaca.markets", "v2");
     }
 
     /**

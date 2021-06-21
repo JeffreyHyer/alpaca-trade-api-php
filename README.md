@@ -9,6 +9,19 @@ This repository contains a PHP SDK for use with the
 **DISCLAIMER:** This is **NOT** an official SDK, it is not affiliated
 with nor endorsed by Alpaca in any way.
 
+## Release Notes
+
+#### v3.0.0
+
+With the release of `v3.0.0` of this library we use the Alpaca Data API v2.
+The `getLastTrade` and `getLastQuote` methods are backwards compatible and
+require no changes to your codebase.
+
+:warning: The `getBars` method is NOT backwards compatible so you will need to update
+your codebase to use the new method signature found in the Market Data section below.
+
+#### v2.0.0
+
 With the release of `v2.0.0` of this library we use v2 of the Alpaca API.
 However, the methods are all backwards compatible with v1.0.0 of this
 library and v1 of the Alpaca API so upgrading should be as simple as
@@ -360,21 +373,34 @@ account in requested timespan.
 
 ---
 
-### Market Data
+### Market Data (v2 API)
 
-:ledger: [Alpaca Docs](https://docs.alpaca.markets/api-documentation/api-v2/market-data/bars)
+:ledger: [Alpaca Docs](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/)
 
-**`getBars($timeframe, $symbols, $limit = null, $start = null, $end = null, $after = null, $until = null)`**
+**`getTrades($symbol, $start, $end, $limit = null, $page_token = null)`**
 
-Retrieves a list of bars for each requested symbol. It is guaranteed
-all bars are in ascending order by time. Currently, no “incomplete”
-bars are returned. For example, a 1 minute bar for 09:30 will not be
-returned until 09:31.
+Returns trade historical data for the requested security.
 
 **`getLastTrade($symbol)`**
 
 Retrieve the last trade for the requested symbol.
 
+**`getQuotes($symbol, $start, $end, $limit = null, $page_token = null)`**
+
+Returns quote (NBBO) historical data for the requested security.
+
 **`getLastQuote($symbol)`**
 
 Retrieves the last quote for the requested symbol.
+
+**`getBars($timeframe, $symbol, $start, $end, $limit = null, $page_token = null)`**
+
+Returns aggregate historical data for the requested security.
+
+**`getMultiSnapshot($symbols)`**
+
+Returns the snapshots for the requested securities.
+
+**`getSnapshot($symbol)`**
+
+Returns the snapshot for the requested security.
