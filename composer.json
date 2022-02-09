@@ -2,8 +2,8 @@
     "name": "jeffreyhyer/alpaca-trade-api-php",
     "type": "library",
     "description": "PHP SDK for the Alpaca trade API",
-    "keywords": ["alpaca", "trade", "markets", "finance", "api", "sdk", "php", "php7", "data"],
-    "version": "3.0.0",
+    "keywords": ["alpaca", "trade", "markets", "finance", "api", "sdk", "php", "php7", "php8", "data"],
+    "version": "3.0.1",
     "license": "MIT",
     "homepage": "https://github.com/jeffreyhyer/alpaca-trade-api-php",
     "support": {

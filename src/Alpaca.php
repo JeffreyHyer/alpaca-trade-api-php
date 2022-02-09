@@ -1076,6 +1076,26 @@ class Alpaca
         return $this->_request("oauth/token", [], "GET", null, "https://api.alpaca.markets/", null);
     }
 
+    /**
+     * Get historical news articles across stocks and crypto.
+     *
+     * @param array $options Valid options include:
+     *  - symbols | string
+     *  - start | Date in RFC 3339 format | Default: 01-01-2015
+     *  - end | Date in RFC 3339 format | Default: now
+     *  - limit | string | Default: 10 | Max: 50
+     *  - sort | 'ASC', 'DESC' | Default: 'DESC'
+     *  - include_content | 'true' or 'false | Default: 'false'
+     *  - exclude_contentless | 'true' or 'false' | Default: 'false'
+     *  - page_token | string
+     *
+     * @return Response
+     */
+    public function getNews($options = [])
+    {
+        return $this->_request("news", $options, "GET", null, "https://data.alpaca.markets/", "v1beta1");
+    }
+
     public function __call($method, $args)
     {
         if (method_exists($this, $method)) {
