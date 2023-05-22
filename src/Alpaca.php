@@ -696,7 +696,7 @@ class Alpaca
      *
      * @link https://docs.alpaca.markets/api-documentation/web-api/clock/#get-the-clock
      *
-     * @return void
+     * @return Response
      */
     public function getClock()
     {
